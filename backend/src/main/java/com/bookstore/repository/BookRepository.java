@@ -13,7 +13,18 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     Page<Book> findBySellerIdAndStatus(Long sellerId, Integer status, Pageable pageable);
     
     @Query("SELECT b FROM Book b WHERE b.status = :status AND (b.title LIKE %:keyword% OR b.author LIKE %:keyword%)")
-    Page<Book> searchBooks(@Param("keyword") String keyword, @Param("status") Integer status, Pageable pageable);
+    Page<Book> searchByKeyword(@Param("keyword") String keyword, @Param("status") Integer status, Pageable pageable);
+    
+    @Query("SELECT b FROM Book b WHERE " +
+           "(:title IS NULL OR b.title LIKE %:title%) AND " +
+           "(:author IS NULL OR b.author LIKE %:author%) AND " +
+           "(:categoryId IS NULL OR b.categoryId = :categoryId) AND " +
+           "(:status IS NULL OR b.status = :status)")
+    Page<Book> searchBooks(@Param("title") String title, 
+                          @Param("author") String author,
+                          @Param("categoryId") Long categoryId,
+                          @Param("status") Integer status, 
+                          Pageable pageable);
     
     @Query("SELECT COUNT(b) FROM Book b WHERE b.status = 1")
     Long countActiveBooks();

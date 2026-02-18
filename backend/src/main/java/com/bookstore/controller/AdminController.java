@@ -67,10 +67,25 @@ public class AdminController {
     @GetMapping("/books")
     public ApiResponse<?> getBooks(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Integer status) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Book> books = bookRepository.findAll(pageRequest);
+        Page<Book> books = bookRepository.searchBooks(title, author, categoryId, status, pageRequest);
         return ApiResponse.success(books);
+    }
+    
+    @PostMapping("/books")
+    public ApiResponse<?> createBook(@RequestBody Book book) {
+        book.setCreatedAt(LocalDateTime.now());
+        book.setUpdatedAt(LocalDateTime.now());
+        if (book.getStatus() == null) {
+            book.setStatus(1);
+        }
+        bookRepository.save(book);
+        return ApiResponse.success(book);
     }
     
     @PutMapping("/books/{id}")
@@ -81,7 +96,13 @@ public class AdminController {
         }
         existing.setTitle(book.getTitle());
         existing.setAuthor(book.getAuthor());
+        existing.setIsbn(book.getIsbn());
+        existing.setPublisher(book.getPublisher());
+        existing.setDescription(book.getDescription());
+        existing.setCoverImage(book.getCoverImage());
+        existing.setOriginalPrice(book.getOriginalPrice());
         existing.setPrice(book.getPrice());
+        existing.setQuality(book.getQuality());
         existing.setStock(book.getStock());
         existing.setStatus(book.getStatus());
         existing.setCategoryId(book.getCategoryId());

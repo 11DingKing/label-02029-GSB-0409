@@ -75,9 +75,9 @@
               </div>
               <label class="upload-btn" v-else>
                 <input type="file" accept="image/*" @change="handleUpload" hidden />
-                <span v-if="uploading">上传中...</span>
-                <span v-else>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <span v-if="uploading" class="upload-text">上传中...</span>
+                <span v-else class="upload-text">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -86,6 +86,7 @@
                 </span>
               </label>
             </div>
+            <p class="upload-tip">支持 JPG、PNG 格式，大小不超过 5MB</p>
           </div>
           
           <div class="form-group">
@@ -259,6 +260,7 @@ textarea.input {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 40px;
   cursor: pointer;
@@ -268,6 +270,22 @@ textarea.input {
 
 .upload-btn:hover {
   color: var(--primary);
+}
+
+.upload-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-text svg {
+  flex-shrink: 0;
+}
+
+.upload-tip {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-top: 8px;
 }
 
 .preview {

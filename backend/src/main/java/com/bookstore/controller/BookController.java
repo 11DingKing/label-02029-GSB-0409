@@ -3,21 +3,31 @@ package com.bookstore.controller;
 import com.bookstore.dto.ApiResponse;
 import com.bookstore.entity.Book;
 import com.bookstore.repository.BookRepository;
+import com.bookstore.repository.UserRepository;
+import com.bookstore.repository.OrderRepository;
 import com.bookstore.security.JwtUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
     
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
     private final JwtUtil jwtUtil;
     
-    public BookController(BookRepository bookRepository, JwtUtil jwtUtil) {
+    public BookController(BookRepository bookRepository, UserRepository userRepository,
+                         OrderRepository orderRepository, JwtUtil jwtUtil) {
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
         this.jwtUtil = jwtUtil;
     }
     
@@ -32,7 +42,7 @@ public class BookController {
         Page<Book> books;
         
         if (keyword != null && !keyword.isEmpty()) {
-            books = bookRepository.searchBooks(keyword, 1, pageRequest);
+            books = bookRepository.searchByKeyword(keyword, 1, pageRequest);
         } else if (categoryId != null) {
             books = bookRepository.findByCategoryIdAndStatus(categoryId, 1, pageRequest);
         } else {
@@ -73,5 +83,29 @@ public class BookController {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Book> books = bookRepository.findBySellerIdAndStatus(userId, 1, pageRequest);
         return ApiResponse.success(books);
+    }
+}
+
+@RestController
+@RequestMapping("/api/stats")
+class StatsController {
+    
+    private final BookRepository bookRepository;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
+    
+    StatsController(BookRepository bookRepository, UserRepository userRepository, OrderRepository orderRepository) {
+        this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
+    }
+    
+    @GetMapping
+    public ApiResponse<?> getStats() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("bookCount", bookRepository.countActiveBooks());
+        stats.put("userCount", userRepository.count());
+        stats.put("orderCount", orderRepository.countAllOrders());
+        return ApiResponse.success(stats);
     }
 }

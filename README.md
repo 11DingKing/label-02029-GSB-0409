@@ -33,13 +33,31 @@ docker-compose down
 
 ### 管理后台
 - 地址：http://localhost:8091
-- 账号：admin
-- 密码：admin123
+- 账号：admin@bookstore.com
+- 密码：123456
 
 ### 用户端
 - 地址：http://localhost:8092
-- 账号：user@test.com
+- 账号：user@bookstore.com
 - 密码：123456
+
+## 测试数据说明
+
+系统初始化时会自动创建测试数据，包括：
+- 3 个测试用户（管理员、普通用户、卖家）
+- 8 个书籍分类
+- 10 本示例书籍
+- 3 个示例订单
+
+**注意：** 测试书籍的封面图片使用的是占位图片服务（picsum.photos），可能加载较慢或显示随机图片。如需使用真实书籍封面，可以通过以下方式修改：
+
+1. **管理后台修改**：登录管理后台 → 书籍管理 → 编辑书籍 → 上传新封面或填写图片URL
+2. **直接修改数据库**：修改 `books` 表的 `cover_image` 字段
+
+推荐的书籍封面图片来源：
+- 豆瓣读书：https://book.douban.com
+- 当当网：https://www.dangdang.com
+- 京东图书：https://book.jd.com
 
 ## 支付功能说明
 
