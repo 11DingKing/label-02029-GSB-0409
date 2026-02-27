@@ -6,6 +6,7 @@ import com.bookstore.entity.Book;
 import com.bookstore.entity.Order;
 import com.bookstore.entity.OrderItem;
 import com.bookstore.repository.BookRepository;
+import com.bookstore.repository.CartItemRepository;
 import com.bookstore.repository.OrderItemRepository;
 import com.bookstore.repository.OrderRepository;
 import com.bookstore.security.JwtUtil;
@@ -26,13 +27,15 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final BookRepository bookRepository;
+    private final CartItemRepository cartItemRepository;
     private final JwtUtil jwtUtil;
     
     public OrderController(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-                          BookRepository bookRepository, JwtUtil jwtUtil) {
+                          BookRepository bookRepository, CartItemRepository cartItemRepository, JwtUtil jwtUtil) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.bookRepository = bookRepository;
+        this.cartItemRepository = cartItemRepository;
         this.jwtUtil = jwtUtil;
     }
     
@@ -97,6 +100,9 @@ public class OrderController {
             book.setStock(book.getStock() - item.getQuantity());
             bookRepository.save(book);
         }
+        
+        // 订单创建成功后清空购物车
+        cartItemRepository.deleteByUserId(userId);
         
         return ApiResponse.success(order);
     }
