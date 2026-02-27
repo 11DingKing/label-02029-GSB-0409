@@ -1,5 +1,6 @@
 package com.bookstore.service;
 
+import com.bookstore.dto.BookRequest;
 import com.bookstore.entity.Book;
 import com.bookstore.repository.BookRepository;
 import org.springframework.data.domain.Page;
@@ -41,9 +42,22 @@ public class BookService {
         return null;
     }
     
-    public Book createBook(Book book, Long userId) {
+    public Book createBook(BookRequest request, Long userId) {
+        Book book = new Book();
+        book.setTitle(request.getTitle());
+        book.setAuthor(request.getAuthor());
+        book.setDescription(request.getDescription());
+        book.setPrice(request.getPrice());
+        book.setStock(request.getStock() != null ? request.getStock() : 0);
+        book.setIsbn(request.getIsbn());
+        book.setPublisher(request.getPublisher());
+        book.setPublishDate(request.getPublishDate());
+        book.setCover(request.getCover());
+        book.setCategoryId(request.getCategoryId());
+        
         book.setSellerId(userId);
         book.setStatus(1);
+        book.setViewCount(0);
         return bookRepository.save(book);
     }
     

@@ -1,9 +1,11 @@
 package com.bookstore.controller;
 
 import com.bookstore.dto.ApiResponse;
+import com.bookstore.dto.BookRequest;
 import com.bookstore.entity.Book;
 import com.bookstore.security.JwtUtil;
 import com.bookstore.service.BookService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +43,12 @@ public class BookController {
     }
     
     @PostMapping
-    public ApiResponse<?> createBook(@RequestBody Book book, @RequestHeader("Authorization") String authHeader) {
+    public ApiResponse<?> createBook(
+            @Valid @RequestBody BookRequest request, 
+            @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtUtil.getUserId(token);
-        Book created = bookService.createBook(book, userId);
+        Book created = bookService.createBook(request, userId);
         return ApiResponse.success(created);
     }
     
