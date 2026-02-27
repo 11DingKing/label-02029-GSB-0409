@@ -48,11 +48,12 @@ public class BookService {
         book.setAuthor(request.getAuthor());
         book.setDescription(request.getDescription());
         book.setPrice(request.getPrice());
+        book.setOriginalPrice(request.getOriginalPrice());
         book.setStock(request.getStock() != null ? request.getStock() : 0);
         book.setIsbn(request.getIsbn());
         book.setPublisher(request.getPublisher());
-        book.setPublishDate(request.getPublishDate());
-        book.setCover(request.getCover());
+        book.setQuality(request.getQuality());
+        book.setCoverImage(request.getCoverImage());
         book.setCategoryId(request.getCategoryId());
         
         book.setSellerId(userId);

@@ -20,10 +20,10 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // 创建管理员账号
-        if (!userRepository.existsByEmail("admin")) {
+        if (!userRepository.existsByEmail("admin@bookstore.com")) {
             User admin = new User();
-            admin.setEmail("admin");
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setEmail("admin@bookstore.com");
+            admin.setPassword(passwordEncoder.encode("123456"));
             admin.setNickname("管理员");
             admin.setRole("ADMIN");
             admin.setStatus(1);
@@ -31,14 +31,25 @@ public class DataInitializer implements CommandLineRunner {
         }
         
         // 创建测试用户
-        if (!userRepository.existsByEmail("user@test.com")) {
+        if (!userRepository.existsByEmail("user@bookstore.com")) {
             User user = new User();
-            user.setEmail("user@test.com");
+            user.setEmail("user@bookstore.com");
             user.setPassword(passwordEncoder.encode("123456"));
             user.setNickname("测试用户");
             user.setRole("USER");
             user.setStatus(1);
             userRepository.save(user);
+        }
+        
+        // 创建卖家用户
+        if (!userRepository.existsByEmail("seller@bookstore.com")) {
+            User seller = new User();
+            seller.setEmail("seller@bookstore.com");
+            seller.setPassword(passwordEncoder.encode("123456"));
+            seller.setNickname("卖家");
+            seller.setRole("USER");
+            seller.setStatus(1);
+            userRepository.save(seller);
         }
     }
 }
