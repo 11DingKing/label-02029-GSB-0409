@@ -104,9 +104,9 @@ CREATE TABLE IF NOT EXISTS favorites (
 
 -- 插入管理员和示例用户 (密码都是 123456，使用BCrypt加密)
 INSERT INTO users (email, password, nickname, role, status) VALUES 
-('admin@bookstore.com', '$2a$10$EqKcp1WFKVQISheBxkV.aOTP1LvVfpWTLEGDfFKH.VKIl3MXhFPi.', '管理员', 'ADMIN', 1),
-('user@bookstore.com', '$2a$10$EqKcp1WFKVQISheBxkV.aOTP1LvVfpWTLEGDfFKH.VKIl3MXhFPi.', '测试用户', 'USER', 1),
-('seller@bookstore.com', '$2a$10$EqKcp1WFKVQISheBxkV.aOTP1LvVfpWTLEGDfFKH.VKIl3MXhFPi.', '书籍卖家', 'USER', 1);
+('admin@bookstore.com', '$2a$10$MnOoQ6juM5gTy4LZXfBxJOg2A/9CSSswvJcx7yccNvzJJuKEgjivG', '管理员', 'ADMIN', 1),
+('user@bookstore.com', '$2a$10$MnOoQ6juM5gTy4LZXfBxJOg2A/9CSSswvJcx7yccNvzJJuKEgjivG', '测试用户', 'USER', 1),
+('seller@bookstore.com', '$2a$10$MnOoQ6juM5gTy4LZXfBxJOg2A/9CSSswvJcx7yccNvzJJuKEgjivG', '书籍卖家', 'USER', 1);
 
 -- 插入分类数据
 INSERT INTO categories (id, name, icon, sort_order, status) VALUES 

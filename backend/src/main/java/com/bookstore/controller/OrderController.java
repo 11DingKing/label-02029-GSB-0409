@@ -3,7 +3,6 @@ package com.bookstore.controller;
 import com.bookstore.dto.ApiResponse;
 import com.bookstore.dto.OrderRequest;
 import com.bookstore.entity.Order;
-import com.bookstore.repository.CartItemRepository;
 import com.bookstore.security.JwtUtil;
 import com.bookstore.service.OrderService;
 import jakarta.validation.Valid;
@@ -15,12 +14,10 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
     
     private final OrderService orderService;
-    private final CartItemRepository cartItemRepository;
     private final JwtUtil jwtUtil;
     
-    public OrderController(OrderService orderService, CartItemRepository cartItemRepository, JwtUtil jwtUtil) {
+    public OrderController(OrderService orderService, JwtUtil jwtUtil) {
         this.orderService = orderService;
-        this.cartItemRepository = cartItemRepository;
         this.jwtUtil = jwtUtil;
     }
     
@@ -51,12 +48,12 @@ public class OrderController {
         String token = authHeader.substring(7);
         Long userId = jwtUtil.getUserId(token);
         
-        Order order = orderService.createOrder(request, userId);
-        
-        // 订单创建成功后清空购物车
-        cartItemRepository.deleteByUserId(userId);
-        
-        return ApiResponse.success(order);
+        try {
+            Order order = orderService.createOrder(request, userId);
+            return ApiResponse.success(order);
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error(400, e.getMessage());
+        }
     }
     
     @PutMapping("/{id}/cancel")

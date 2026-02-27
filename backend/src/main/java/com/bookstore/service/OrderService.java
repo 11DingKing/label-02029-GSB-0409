@@ -5,6 +5,7 @@ import com.bookstore.entity.Book;
 import com.bookstore.entity.Order;
 import com.bookstore.entity.OrderItem;
 import com.bookstore.repository.BookRepository;
+import com.bookstore.repository.CartItemRepository;
 import com.bookstore.repository.OrderItemRepository;
 import com.bookstore.repository.OrderRepository;
 import org.slf4j.Logger;
@@ -28,12 +29,14 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final BookRepository bookRepository;
+    private final CartItemRepository cartItemRepository;
     
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-                      BookRepository bookRepository) {
+                      BookRepository bookRepository, CartItemRepository cartItemRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.bookRepository = bookRepository;
+        this.cartItemRepository = cartItemRepository;
     }
     
     public Page<Order> getOrders(Long userId, int page, int size) {
@@ -91,6 +94,10 @@ public class OrderService {
             
             log.debug("书籍 {} 库存扣减: {} -> {}", book.getTitle(), book.getStock() + item.getQuantity(), book.getStock());
         }
+        
+        // 清空购物车
+        cartItemRepository.deleteByUserId(userId);
+        log.info("用户 {} 购物车已清空", userId);
         
         return order;
     }

@@ -186,3 +186,95 @@ ALIPAY_NOTIFY_URL=https://你的域名/api/payment/alipay/notify
 - 数据库：bookstore
 - 用户名：root
 - 密码：1234
+
+## 本地开发指南
+
+如果需要在本地（非 Docker）环境进行开发调试，请按以下步骤操作：
+
+### 环境要求
+
+- JDK 17+
+- Node.js 18+
+- MySQL 8.0+
+- Maven 3.8+
+
+### 1. 数据库配置
+
+本地 MySQL 默认端口为 3306，需要创建数据库：
+
+```sql
+CREATE DATABASE bookstore CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+然后导入初始化脚本：
+
+```bash
+mysql -u root -p1234 bookstore < backend/src/main/resources/db/init.sql
+```
+
+### 2. 后端启动
+
+修改 `backend/src/main/resources/application.yml` 中的数据库配置：
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/bookstore  # 本地端口改为 3306
+```
+
+启动后端：
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+后端将在 http://localhost:8080 启动。
+
+### 3. 前端启动
+
+用户端：
+
+```bash
+cd frontend-user
+npm install
+npm run dev
+```
+
+用户端将在 http://localhost:5173 启动。
+
+管理后台：
+
+```bash
+cd frontend-admin
+npm install
+npm run dev
+```
+
+管理后台将在 http://localhost:5174 启动。
+
+### 4. 本地开发端口对照
+
+| 服务 | Docker 端口 | 本地开发端口 |
+|------|-------------|--------------|
+| 后端 API | 8090 | 8080 |
+| 用户端 | 8092 | 5173 |
+| 管理后台 | 8091 | 5174 |
+| MySQL | 3307 | 3306 |
+
+### 5. 前端代理配置
+
+前端 Vite 配置已设置代理，本地开发时 API 请求会自动转发到 `http://localhost:8080`。
+
+如需修改代理目标，编辑 `vite.config.js`：
+
+```javascript
+server: {
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8080',  // 修改为你的后端地址
+      changeOrigin: true
+    }
+  }
+}
+```

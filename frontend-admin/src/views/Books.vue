@@ -40,9 +40,9 @@
         <el-table-column prop="id" label="编号" width="80" />
         <el-table-column label="封面" width="80">
           <template #default="{ row }">
-            <el-image :src="row.coverImage" style="width: 50px; height: 70px" fit="cover">
+            <el-image :src="row.coverImage || '/images/default-cover.svg'" style="width: 50px; height: 70px" fit="cover">
               <template #error>
-                <div class="image-placeholder">暂无</div>
+                <img src="/images/default-cover.svg" style="width: 50px; height: 70px; object-fit: cover" />
               </template>
             </el-image>
           </template>

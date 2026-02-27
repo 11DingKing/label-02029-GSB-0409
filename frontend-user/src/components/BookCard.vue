@@ -1,8 +1,8 @@
 <template>
   <router-link :to="`/book/${book.id}`" class="book-card card">
     <div class="book-cover">
-      <img :src="book.coverImage || 'https://via.placeholder.com/200x280?text=No+Cover'" :alt="book.title" />
-      <span class="quality-badge" :class="qualityClass">{{ book.quality }}</span>
+      <img :src="coverUrl" :alt="book.title" @error="handleImageError" />
+      <span class="quality-badge" :class="qualityClass">{{ book.quality || '良好' }}</span>
     </div>
     <div class="book-info">
       <h3 class="book-title">{{ book.title }}</h3>
@@ -16,11 +16,25 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   book: { type: Object, required: true }
 })
+
+const defaultCover = '/images/default-cover.svg'
+const imageError = ref(false)
+
+const coverUrl = computed(() => {
+  if (imageError.value || !props.book.coverImage) {
+    return defaultCover
+  }
+  return props.book.coverImage
+})
+
+const handleImageError = () => {
+  imageError.value = true
+}
 
 const qualityClass = computed(() => {
   const q = props.book.quality

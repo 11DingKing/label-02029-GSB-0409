@@ -20,12 +20,14 @@ public class BookRequest {
     @DecimalMin(value = "0.01", message = "价格必须大于0")
     private BigDecimal price;
     
+    private BigDecimal originalPrice;
+    
     @Min(value = 0, message = "库存不能为负数")
     private Integer stock;
     
     private String isbn;
     private String publisher;
-    private String publishDate;
-    private String cover;
+    private String coverImage;
+    private String quality;
     private Long categoryId;
 }
