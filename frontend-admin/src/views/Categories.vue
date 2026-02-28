@@ -106,12 +106,19 @@ const saveCategory = async () => {
 
 const deleteCategory = async (category) => {
   try {
-    await ElMessageBox.confirm('确定删除该分类?', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确定删除该分类?', '提示', {
+      type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消'
+    })
     await api.delete(`/admin/categories/${category.id}`)
     ElMessage.success('删除成功')
     fetchCategories()
   } catch (e) {
-    if (e !== 'cancel') ElMessage.error('删除失败')
+    if (e !== 'cancel') {
+      const msg = e.response?.data?.message || '删除失败'
+      ElMessage.error(msg)
+    }
   }
 }
 

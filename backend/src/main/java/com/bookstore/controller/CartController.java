@@ -3,7 +3,7 @@ package com.bookstore.controller;
 import com.bookstore.dto.ApiResponse;
 import com.bookstore.entity.CartItem;
 import com.bookstore.repository.CartItemRepository;
-import com.bookstore.security.JwtUtil;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -12,26 +12,19 @@ import java.util.List;
 public class CartController {
     
     private final CartItemRepository cartItemRepository;
-    private final JwtUtil jwtUtil;
     
-    public CartController(CartItemRepository cartItemRepository, JwtUtil jwtUtil) {
+    public CartController(CartItemRepository cartItemRepository) {
         this.cartItemRepository = cartItemRepository;
-        this.jwtUtil = jwtUtil;
     }
     
     @GetMapping
-    public ApiResponse<?> getCart(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
+    public ApiResponse<?> getCart(@AuthenticationPrincipal Long userId) {
         List<CartItem> items = cartItemRepository.findByUserId(userId);
         return ApiResponse.success(items);
     }
     
     @PostMapping
-    public ApiResponse<?> addToCart(@RequestBody CartItem item, @RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
-        
+    public ApiResponse<?> addToCart(@RequestBody CartItem item, @AuthenticationPrincipal Long userId) {
         CartItem existing = cartItemRepository.findByUserIdAndBookId(userId, item.getBookId()).orElse(null);
         if (existing != null) {
             existing.setQuantity(existing.getQuantity() + 1);
@@ -63,9 +56,7 @@ public class CartController {
     }
     
     @DeleteMapping
-    public ApiResponse<?> clearCart(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
+    public ApiResponse<?> clearCart(@AuthenticationPrincipal Long userId) {
         cartItemRepository.deleteByUserId(userId);
         return ApiResponse.success();
     }

@@ -1,5 +1,7 @@
 package com.bookstore.controller;
 
+import com.bookstore.constant.BookStatus;
+import com.bookstore.constant.OrderStatus;
 import com.bookstore.dto.ApiResponse;
 import com.bookstore.entity.Book;
 import com.bookstore.entity.Category;
@@ -23,13 +25,21 @@ public class AdminController {
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final CartItemRepository cartItemRepository;
+    private final FavoriteRepository favoriteRepository;
     
     public AdminController(UserRepository userRepository, BookRepository bookRepository,
-                          CategoryRepository categoryRepository, OrderRepository orderRepository) {
+                          CategoryRepository categoryRepository, OrderRepository orderRepository,
+                          OrderItemRepository orderItemRepository, CartItemRepository cartItemRepository,
+                          FavoriteRepository favoriteRepository) {
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
         this.categoryRepository = categoryRepository;
         this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.favoriteRepository = favoriteRepository;
     }
     
     @GetMapping("/dashboard")
@@ -82,7 +92,7 @@ public class AdminController {
         book.setCreatedAt(LocalDateTime.now());
         book.setUpdatedAt(LocalDateTime.now());
         if (book.getStatus() == null) {
-            book.setStatus(1);
+            book.setStatus(BookStatus.ACTIVE);
         }
         bookRepository.save(book);
         return ApiResponse.success(book);
@@ -117,8 +127,12 @@ public class AdminController {
         if (book == null) {
             return ApiResponse.error(404, "书籍不存在");
         }
-        book.setStatus(0);
-        bookRepository.save(book);
+        if (orderItemRepository.existsByBookId(id)) {
+            return ApiResponse.error(400, "该书籍存在关联订单，无法删除");
+        }
+        cartItemRepository.deleteByBookId(id);
+        favoriteRepository.deleteByBookId(id);
+        bookRepository.delete(book);
         return ApiResponse.success();
     }
     
@@ -149,7 +163,14 @@ public class AdminController {
     
     @DeleteMapping("/categories/{id}")
     public ApiResponse<?> deleteCategory(@PathVariable Long id) {
-        categoryRepository.deleteById(id);
+        Category category = categoryRepository.findById(id).orElse(null);
+        if (category == null) {
+            return ApiResponse.error(404, "分类不存在");
+        }
+        if (bookRepository.existsByCategoryId(id)) {
+            return ApiResponse.error(400, "该分类下存在书籍，无法删除");
+        }
+        categoryRepository.delete(category);
         return ApiResponse.success();
     }
     
@@ -174,7 +195,12 @@ public class AdminController {
         if (order == null) {
             return ApiResponse.error(404, "订单不存在");
         }
-        order.setStatus(body.get("status"));
+        String newStatus = body.get("status");
+        if (OrderStatus.SHIPPED.equals(newStatus)) {
+            String trackingNo = body.get("trackingNo");
+            order.setTrackingNo(trackingNo);
+        }
+        order.setStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
         return ApiResponse.success(order);

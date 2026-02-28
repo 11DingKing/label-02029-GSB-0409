@@ -23,7 +23,9 @@ docker-compose down
 | 用户端 | 8092 | http://localhost:8092 |
 | 管理后台 | 8091 | http://localhost:8091 |
 | 后端 API | 8090 | http://localhost:8090/api |
-| MySQL | 3307 | localhost:3307 |
+| MySQL | **3307** | localhost:**3307** |
+
+> **注意：** MySQL 映射到宿主机的 **3307** 端口（非默认 3306），以避免与本地已有的 MySQL 实例冲突。使用数据库客户端连接时，请确认端口为 **3307**。
 
 启动成功后直接访问：
 - 用户端：http://localhost:8092
@@ -46,18 +48,8 @@ docker-compose down
 系统初始化时会自动创建测试数据，包括：
 - 3 个测试用户（管理员、普通用户、卖家）
 - 8 个书籍分类
-- 10 本示例书籍
+- 6 本示例书籍（使用真实封面图片）
 - 3 个示例订单
-
-**注意：** 测试书籍的封面图片使用的是占位图片服务（picsum.photos），可能加载较慢或显示随机图片。如需使用真实书籍封面，可以通过以下方式修改：
-
-1. **管理后台修改**：登录管理后台 → 书籍管理 → 编辑书籍 → 上传新封面或填写图片URL
-2. **直接修改数据库**：修改 `books` 表的 `cover_image` 字段
-
-推荐的书籍封面图片来源：
-- 豆瓣读书：https://book.douban.com
-- 当当网：https://www.dangdang.com
-- 京东图书：https://book.jd.com
 
 ## 支付功能说明
 
@@ -154,7 +146,7 @@ ALIPAY_NOTIFY_URL=https://你的域名/api/payment/alipay/notify
 - 发布二手书
 - 收藏功能
 
-#### 管理后台 (http://localhost:8091)
+#### 管理后台 ( )
 - 管理员登录
 - 数据统计仪表盘
 - 用户管理

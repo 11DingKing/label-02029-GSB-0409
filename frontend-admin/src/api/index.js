@@ -15,7 +15,13 @@ api.interceptors.request.use(config => {
 })
 
 api.interceptors.response.use(
-  response => response.data,
+  response => {
+    const data = response.data
+    if (data.code && data.code !== 200) {
+      return Promise.reject({ response: { data } })
+    }
+    return data
+  },
   error => {
     if (error.response?.status === 401) {
       localStorage.removeItem('admin_token')

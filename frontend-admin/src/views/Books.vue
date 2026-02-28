@@ -161,17 +161,19 @@
           </el-col>
         </el-row>
         <el-row :gutter="16">
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="原价">
-              <el-input-number v-model="editForm.originalPrice" :min="0" :precision="2" style="width: 100%" />
+              <el-input-number v-model="editForm.originalPrice" :min="0" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="售价" prop="price">
-              <el-input-number v-model="editForm.price" :min="0" :precision="2" style="width: 100%" />
+              <el-input-number v-model="editForm.price" :min="0" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
             <el-form-item label="库存" prop="stock">
               <el-input-number v-model="editForm.stock" :min="0" style="width: 100%" />
             </el-form-item>
@@ -378,7 +380,10 @@ const deleteBook = async (book) => {
     ElMessage.success('删除成功')
     fetchBooks()
   } catch (e) {
-    if (e !== 'cancel') ElMessage.error('删除失败')
+    if (e !== 'cancel') {
+      const msg = e.response?.data?.message || '删除失败'
+      ElMessage.error(msg)
+    }
   }
 }
 

@@ -33,6 +33,9 @@ public class Order {
     
     @Column(columnDefinition = "TEXT")
     private String remark;
+
+    @Column(name = "tracking_no")
+    private String trackingNo;
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "created_at")

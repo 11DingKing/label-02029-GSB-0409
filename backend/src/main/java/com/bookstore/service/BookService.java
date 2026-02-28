@@ -1,5 +1,6 @@
 package com.bookstore.service;
 
+import com.bookstore.constant.BookStatus;
 import com.bookstore.dto.BookRequest;
 import com.bookstore.entity.Book;
 import com.bookstore.repository.BookRepository;
@@ -21,11 +22,11 @@ public class BookService {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         
         if (keyword != null && !keyword.isEmpty()) {
-            return bookRepository.searchByKeyword(keyword, 1, pageRequest);
+            return bookRepository.searchByKeyword(keyword, BookStatus.ACTIVE, pageRequest);
         } else if (categoryId != null) {
-            return bookRepository.findByCategoryIdAndStatus(categoryId, 1, pageRequest);
+            return bookRepository.findByCategoryIdAndStatus(categoryId, BookStatus.ACTIVE, pageRequest);
         } else {
-            return bookRepository.findByStatus(1, pageRequest);
+            return bookRepository.findByStatus(BookStatus.ACTIVE, pageRequest);
         }
     }
     
@@ -57,13 +58,13 @@ public class BookService {
         book.setQuality(request.getQuality());
         
         book.setSellerId(userId);
-        book.setStatus(1);
+        book.setStatus(BookStatus.ACTIVE);
         book.setViewCount(0);
         return bookRepository.save(book);
     }
     
     public Page<Book> getMyBooks(Long userId, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return bookRepository.findBySellerIdAndStatus(userId, 1, pageRequest);
+        return bookRepository.findBySellerIdAndStatus(userId, BookStatus.ACTIVE, pageRequest);
     }
 }

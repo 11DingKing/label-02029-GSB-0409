@@ -25,6 +25,10 @@
                 <span class="item-price">¥{{ item.price }}</span>
               </div>
             </div>
+            <div class="tracking-info" v-if="order.trackingNo && (order.status === 'SHIPPED' || order.status === 'COMPLETED')">
+              <span class="tracking-label">快递单号：</span>
+              <span class="tracking-no">{{ order.trackingNo }}</span>
+            </div>
             <div class="order-total">
               <span>共 {{ order.items?.length || 0 }} 件商品</span>
               <span class="total-amount">合计: <strong>¥{{ order.totalAmount }}</strong></span>
@@ -350,6 +354,29 @@ onMounted(() => {
 .item-price {
   font-weight: 500;
   color: var(--gray-700);
+}
+
+.tracking-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  background: #eff6ff;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.tracking-label {
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+.tracking-no {
+  color: var(--primary);
+  font-weight: 600;
+  font-family: monospace;
+  letter-spacing: 0.5px;
 }
 
 .order-total {

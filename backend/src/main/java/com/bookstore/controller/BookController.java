@@ -3,10 +3,10 @@ package com.bookstore.controller;
 import com.bookstore.dto.ApiResponse;
 import com.bookstore.dto.BookRequest;
 import com.bookstore.entity.Book;
-import com.bookstore.security.JwtUtil;
 import com.bookstore.service.BookService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,11 +14,9 @@ import org.springframework.web.bind.annotation.*;
 public class BookController {
     
     private final BookService bookService;
-    private final JwtUtil jwtUtil;
     
-    public BookController(BookService bookService, JwtUtil jwtUtil) {
+    public BookController(BookService bookService) {
         this.bookService = bookService;
-        this.jwtUtil = jwtUtil;
     }
     
     @GetMapping
@@ -44,21 +42,17 @@ public class BookController {
     
     @PostMapping
     public ApiResponse<?> createBook(
-            @Valid @RequestBody BookRequest request, 
-            @RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
+            @Valid @RequestBody BookRequest request,
+            @AuthenticationPrincipal Long userId) {
         Book created = bookService.createBook(request, userId);
         return ApiResponse.success(created);
     }
     
     @GetMapping("/my")
     public ApiResponse<?> getMyBooks(
-            @RequestHeader("Authorization") String authHeader,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
         Page<Book> books = bookService.getMyBooks(userId, page, size);
         return ApiResponse.success(books);
     }

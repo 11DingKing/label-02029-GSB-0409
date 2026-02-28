@@ -3,7 +3,7 @@ package com.bookstore.controller;
 import com.bookstore.dto.ApiResponse;
 import com.bookstore.entity.Favorite;
 import com.bookstore.repository.FavoriteRepository;
-import com.bookstore.security.JwtUtil;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -12,26 +12,19 @@ import java.util.List;
 public class FavoriteController {
     
     private final FavoriteRepository favoriteRepository;
-    private final JwtUtil jwtUtil;
     
-    public FavoriteController(FavoriteRepository favoriteRepository, JwtUtil jwtUtil) {
+    public FavoriteController(FavoriteRepository favoriteRepository) {
         this.favoriteRepository = favoriteRepository;
-        this.jwtUtil = jwtUtil;
     }
     
     @GetMapping
-    public ApiResponse<?> getFavorites(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
+    public ApiResponse<?> getFavorites(@AuthenticationPrincipal Long userId) {
         List<Favorite> favorites = favoriteRepository.findByUserId(userId);
         return ApiResponse.success(favorites);
     }
     
     @PostMapping("/{bookId}")
-    public ApiResponse<?> addFavorite(@PathVariable Long bookId, @RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
-        
+    public ApiResponse<?> addFavorite(@PathVariable Long bookId, @AuthenticationPrincipal Long userId) {
         if (favoriteRepository.existsByUserIdAndBookId(userId, bookId)) {
             return ApiResponse.error(400, "已收藏");
         }
@@ -44,9 +37,7 @@ public class FavoriteController {
     }
     
     @DeleteMapping("/{bookId}")
-    public ApiResponse<?> removeFavorite(@PathVariable Long bookId, @RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
+    public ApiResponse<?> removeFavorite(@PathVariable Long bookId, @AuthenticationPrincipal Long userId) {
         Favorite favorite = favoriteRepository.findByUserIdAndBookId(userId, bookId).orElse(null);
         if (favorite != null) {
             favoriteRepository.delete(favorite);
@@ -55,9 +46,7 @@ public class FavoriteController {
     }
     
     @GetMapping("/check/{bookId}")
-    public ApiResponse<?> checkFavorite(@PathVariable Long bookId, @RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
+    public ApiResponse<?> checkFavorite(@PathVariable Long bookId, @AuthenticationPrincipal Long userId) {
         boolean isFavorite = favoriteRepository.existsByUserIdAndBookId(userId, bookId);
         return ApiResponse.success(isFavorite);
     }

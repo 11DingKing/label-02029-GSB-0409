@@ -1,5 +1,6 @@
 package com.bookstore.service;
 
+import com.bookstore.constant.OrderStatus;
 import com.bookstore.dto.OrderRequest;
 import com.bookstore.entity.Book;
 import com.bookstore.entity.Order;
@@ -53,32 +54,35 @@ public class OrderService {
         log.info("用户 {} 开始创建订单", userId);
         
         BigDecimal totalAmount = BigDecimal.ZERO;
-        
-        // 校验库存并计算总价
-        for (OrderRequest.OrderItemRequest item : request.getItems()) {
-            Book book = bookRepository.findById(item.getBookId()).orElse(null);
-            if (book == null || book.getStock() < item.getQuantity()) {
-                log.warn("书籍ID {} 库存不足", item.getBookId());
-                throw new IllegalArgumentException("库存不足: " + (book != null ? book.getTitle() : "书籍不存在"));
-            }
-            totalAmount = totalAmount.add(book.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
-        }
-        
-        // 创建订单
+
         Order order = new Order();
         order.setOrderNo(generateOrderNo());
         order.setUserId(userId);
-        order.setTotalAmount(totalAmount);
         order.setAddress(request.getAddress());
         order.setPhone(request.getPhone());
         order.setReceiver(request.getReceiver());
         order.setRemark(request.getRemark());
-        order.setStatus("PENDING");
+        order.setStatus(OrderStatus.PENDING);
+
+        for (OrderRequest.OrderItemRequest item : request.getItems()) {
+            Book book = bookRepository.findById(item.getBookId()).orElse(null);
+            if (book == null) {
+                throw new IllegalArgumentException("书籍不存在");
+            }
+
+            int updated = bookRepository.decrementStock(item.getBookId(), item.getQuantity());
+            if (updated == 0) {
+                throw new IllegalArgumentException("库存不足: " + book.getTitle());
+            }
+
+            totalAmount = totalAmount.add(book.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+        }
+
+        order.setTotalAmount(totalAmount);
         orderRepository.save(order);
         
         log.info("订单 {} 创建成功，总金额: {}", order.getOrderNo(), totalAmount);
         
-        // 创建订单明细并扣减库存
         for (OrderRequest.OrderItemRequest item : request.getItems()) {
             Book book = bookRepository.findById(item.getBookId()).orElse(null);
             
@@ -88,14 +92,8 @@ public class OrderService {
             orderItem.setQuantity(item.getQuantity());
             orderItem.setPrice(book.getPrice());
             orderItemRepository.save(orderItem);
-            
-            book.setStock(book.getStock() - item.getQuantity());
-            bookRepository.save(book);
-            
-            log.debug("书籍 {} 库存扣减: {} -> {}", book.getTitle(), book.getStock() + item.getQuantity(), book.getStock());
         }
         
-        // 清空购物车
         cartItemRepository.deleteByUserId(userId);
         log.info("用户 {} 购物车已清空", userId);
         
@@ -108,7 +106,7 @@ public class OrderService {
             log.warn("取消订单失败，订单 {} 不存在", id);
             throw new IllegalArgumentException("订单不存在");
         }
-        order.setStatus("CANCELLED");
+        order.setStatus(OrderStatus.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
         log.info("订单 {} 已取消", id);
         return orderRepository.save(order);

@@ -1,5 +1,6 @@
 package com.bookstore.config;
 
+import com.bookstore.constant.UserStatus;
 import com.bookstore.entity.User;
 import com.bookstore.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -26,7 +27,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setPassword(passwordEncoder.encode("123456"));
             admin.setNickname("管理员");
             admin.setRole("ADMIN");
-            admin.setStatus(1);
+            admin.setStatus(UserStatus.ACTIVE);
             userRepository.save(admin);
         }
         
@@ -37,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
             user.setPassword(passwordEncoder.encode("123456"));
             user.setNickname("测试用户");
             user.setRole("USER");
-            user.setStatus(1);
+            user.setStatus(UserStatus.ACTIVE);
             userRepository.save(user);
         }
         
@@ -48,7 +49,7 @@ public class DataInitializer implements CommandLineRunner {
             seller.setPassword(passwordEncoder.encode("123456"));
             seller.setNickname("卖家");
             seller.setRole("USER");
-            seller.setStatus(1);
+            seller.setStatus(UserStatus.ACTIVE);
             userRepository.save(seller);
         }
     }

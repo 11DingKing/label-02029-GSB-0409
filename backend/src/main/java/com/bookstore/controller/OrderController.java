@@ -3,10 +3,10 @@ package com.bookstore.controller;
 import com.bookstore.dto.ApiResponse;
 import com.bookstore.dto.OrderRequest;
 import com.bookstore.entity.Order;
-import com.bookstore.security.JwtUtil;
 import com.bookstore.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,20 +14,16 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
     
     private final OrderService orderService;
-    private final JwtUtil jwtUtil;
     
-    public OrderController(OrderService orderService, JwtUtil jwtUtil) {
+    public OrderController(OrderService orderService) {
         this.orderService = orderService;
-        this.jwtUtil = jwtUtil;
     }
     
     @GetMapping
     public ApiResponse<?> getOrders(
-            @RequestHeader("Authorization") String authHeader,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
         Page<Order> orders = orderService.getOrders(userId, page, size);
         return ApiResponse.success(orders);
     }
@@ -43,11 +39,8 @@ public class OrderController {
     
     @PostMapping
     public ApiResponse<?> createOrder(
-            @Valid @RequestBody OrderRequest request, 
-            @RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.getUserId(token);
-        
+            @Valid @RequestBody OrderRequest request,
+            @AuthenticationPrincipal Long userId) {
         try {
             Order order = orderService.createOrder(request, userId);
             return ApiResponse.success(order);

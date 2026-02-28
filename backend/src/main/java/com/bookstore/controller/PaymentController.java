@@ -1,5 +1,6 @@
 package com.bookstore.controller;
 
+import com.bookstore.constant.OrderStatus;
 import com.bookstore.dto.ApiResponse;
 import com.bookstore.dto.PaymentRequest;
 import com.bookstore.entity.Order;
@@ -40,7 +41,7 @@ public class PaymentController {
             return ApiResponse.error(404, "订单不存在");
         }
         
-        if (!"PENDING".equals(order.getStatus())) {
+        if (!OrderStatus.PENDING.equals(order.getStatus())) {
             return ApiResponse.error(400, "订单状态不正确");
         }
         
@@ -78,18 +79,17 @@ public class PaymentController {
             return ApiResponse.error(404, "订单不存在");
         }
         
-        if (!"PENDING".equals(order.getStatus())) {
+        if (!OrderStatus.PENDING.equals(order.getStatus())) {
             return ApiResponse.error(400, "订单已支付或已取消");
         }
         
-        // 模拟支付成功
-        order.setStatus("PAID");
+        order.setStatus(OrderStatus.PAID);
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
         
         Map<String, Object> result = new HashMap<>();
         result.put("orderId", order.getId());
-        result.put("status", "PAID");
+        result.put("status", OrderStatus.PAID);
         result.put("message", "支付成功");
         
         return ApiResponse.success(result);
