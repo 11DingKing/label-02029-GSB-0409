@@ -1,13 +1,11 @@
 services:
   mysql:
-    image: mariadb:11.4
+    image: mysql:8.4
     container_name: bookstore-mysql
     restart: always
     environment:
-      MARIADB_ROOT_PASSWORD: "1234"
-      MARIADB_DATABASE: bookstore
-      MARIADB_CHARSET: utf8mb4
-      MARIADB_COLLATION: utf8mb4_unicode_ci
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: bookstore
     ports:
       - "3307:3306"
     volumes:
@@ -16,8 +14,9 @@ services:
     command: >
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
+      --mysql-native-password=ON
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -34,9 +33,7 @@ services:
     ports:
       - "8090:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mariadb://mysql:3306/bookstore?useSSL=false&characterEncoding=utf8
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.mariadb.jdbc.Driver
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MariaDBDialect
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bookstore?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: "1234"
       # 支付配置 - 默认模拟模式
