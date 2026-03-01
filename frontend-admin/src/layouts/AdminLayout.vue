@@ -108,6 +108,13 @@ const handleCommand = (command) => {
   gap: 8px;
   cursor: pointer;
   color: var(--gray-700);
+  outline: none;
+}
+
+.user-info:focus,
+.user-info:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .main-content {

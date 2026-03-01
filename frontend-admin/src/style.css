@@ -50,6 +50,12 @@ body {
   border-right: none !important;
 }
 
+.el-dropdown__caret-button:focus-visible,
+.el-dropdown .el-tooltip__trigger:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .el-card {
   border-radius: var(--radius) !important;
   border: none !important;
@@ -62,6 +68,21 @@ body {
 
 .el-input__wrapper {
   border-radius: var(--radius-sm) !important;
+}
+
+.el-input.is-focus .el-input__clear,
+.el-input:hover .el-input__clear {
+  opacity: 1;
+}
+
+.el-input .el-input__clear {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.el-input .el-input__suffix {
+  position: absolute;
+  right: 8px;
 }
 
 .page-header {

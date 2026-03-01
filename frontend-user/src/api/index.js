@@ -19,10 +19,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('user_token')
       localStorage.removeItem('user_info')
-      alert('登录已失效，请重新登录')
-      setTimeout(() => {
-        window.location.href = '/login'
-      }, 1000)
+      if (window.__showLoginModal) {
+        window.__showLoginModal()
+      }
     }
     return Promise.reject(error)
   }

@@ -1,4 +1,5 @@
 <template>
+  <div>
   <header class="header">
     <div class="container header-inner">
       <router-link to="/" class="logo">
@@ -24,7 +25,7 @@
             </svg>
             <span v-if="cartStore.count" class="cart-badge">{{ cartStore.count }}</span>
           </router-link>
-          <div class="user-menu" @click="showMenu = !showMenu">
+          <div class="user-menu" @click="showMenu = !showMenu" v-click-outside="() => showMenu = false">
             <div class="avatar">{{ userStore.userInfo?.nickname?.[0] || 'U' }}</div>
             <div class="dropdown" v-if="showMenu">
               <router-link to="/profile" class="dropdown-item">个人中心</router-link>
@@ -35,34 +36,179 @@
           </div>
         </template>
         <template v-else>
-          <router-link to="/login" class="btn btn-secondary">登录</router-link>
-          <router-link to="/register" class="btn btn-primary">注册</router-link>
+          <button class="btn btn-secondary" @click="openLogin">登录</button>
+          <button class="btn btn-primary" @click="openRegister">注册</button>
         </template>
       </div>
     </div>
   </header>
+
+  <!-- 登录弹窗 -->
+  <div v-if="authModalVisible" class="auth-overlay" @click.self="authModalVisible = false">
+    <div class="auth-modal">
+      <button class="auth-close" @click="authModalVisible = false">&times;</button>
+      
+      <!-- 登录表单 -->
+      <template v-if="authMode === 'login'">
+        <div class="auth-header">
+          <h2>欢迎回来</h2>
+          <p>登录你的账号继续探索</p>
+        </div>
+        <form @submit.prevent="handleLogin">
+          <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" v-model="loginForm.email" class="input" placeholder="请输入邮箱" required />
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" v-model="loginForm.password" class="input" placeholder="请输入密码" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%" :disabled="authLoading">
+            {{ authLoading ? '登录中...' : '登录' }}
+          </button>
+        </form>
+        <p class="auth-footer">
+          还没有账号？<a href="#" @click.prevent="authMode = 'register'">立即注册</a>
+        </p>
+      </template>
+
+      <!-- 注册表单 -->
+      <template v-else>
+        <div class="auth-header">
+          <h2>创建账号</h2>
+          <p>加入我们，开始你的阅读之旅</p>
+        </div>
+        <form @submit.prevent="handleRegister">
+          <div class="form-group">
+            <label>昵称</label>
+            <input type="text" v-model="registerForm.nickname" class="input" placeholder="请输入昵称" required />
+          </div>
+          <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" v-model="registerForm.email" class="input" placeholder="请输入邮箱" required />
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" v-model="registerForm.password" class="input" placeholder="请输入密码（至少6位）" required minlength="6" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%" :disabled="authLoading">
+            {{ authLoading ? '注册中...' : '注册' }}
+          </button>
+        </form>
+        <p class="auth-footer">
+          已有账号？<a href="#" @click.prevent="authMode = 'login'">立即登录</a>
+        </p>
+      </template>
+    </div>
+  </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useCartStore } from '../stores/cart'
+import { useToast } from '../composables/useToast'
+import api from '../api'
 
 const router = useRouter()
 const userStore = useUserStore()
 const cartStore = useCartStore()
+const toast = useToast()
 const showMenu = ref(false)
+
+const authModalVisible = ref(false)
+const authMode = ref('login')
+const authLoading = ref(false)
+const loginForm = ref({ email: '', password: '' })
+const registerForm = ref({ nickname: '', email: '', password: '' })
+
+const vClickOutside = {
+  mounted(el, binding) {
+    el._clickOutside = (e) => {
+      if (!el.contains(e.target)) binding.value()
+    }
+    document.addEventListener('click', el._clickOutside)
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el._clickOutside)
+  }
+}
+
+const openLogin = () => {
+  authMode.value = 'login'
+  loginForm.value = { email: '', password: '' }
+  authModalVisible.value = true
+}
+
+const openRegister = () => {
+  authMode.value = 'register'
+  registerForm.value = { nickname: '', email: '', password: '' }
+  authModalVisible.value = true
+}
+
+const handleLogin = async () => {
+  if (!loginForm.value.email || !loginForm.value.password) {
+    toast.warning('请输入账号和密码')
+    return
+  }
+  authLoading.value = true
+  try {
+    const res = await api.post('/auth/login', loginForm.value)
+    if (res.code === 200) {
+      userStore.setUser(res.data)
+      toast.success('登录成功')
+      authModalVisible.value = false
+      cartStore.fetchCart()
+    } else {
+      toast.error(res.message || '登录失败')
+    }
+  } catch (e) {
+    toast.error('登录失败，请检查账号密码')
+  }
+  authLoading.value = false
+}
+
+const handleRegister = async () => {
+  authLoading.value = true
+  try {
+    const res = await api.post('/auth/register', registerForm.value)
+    if (res.code === 200) {
+      userStore.setUser(res.data)
+      toast.success('注册成功')
+      authModalVisible.value = false
+      cartStore.fetchCart()
+    } else {
+      toast.error(res.message || '注册失败')
+    }
+  } catch (e) {
+    toast.error('注册失败')
+  }
+  authLoading.value = false
+}
 
 const handleLogout = () => {
   userStore.logout()
   router.push('/')
 }
 
+const showLoginModal = () => {
+  openLogin()
+}
+
+defineExpose({ showLoginModal, openLogin, openRegister })
+
 onMounted(() => {
   if (userStore.isLoggedIn) {
     cartStore.fetchCart()
   }
+
+  window.__showLoginModal = showLoginModal
+})
+
+onBeforeUnmount(() => {
+  delete window.__showLoginModal
 })
 </script>
 
@@ -196,5 +342,109 @@ onMounted(() => {
   height: 1px;
   background: var(--gray-100);
   margin: 8px 0;
+}
+
+/* Auth Modal */
+.auth-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.auth-modal {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 48px;
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+.auth-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray-100);
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-close:hover {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 8px;
+}
+
+.auth-header p {
+  color: var(--gray-500);
+}
+
+.auth-modal .form-group {
+  margin-bottom: 20px;
+}
+
+.auth-modal .form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 8px;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  color: var(--gray-500);
+}
+
+.auth-footer a {
+  color: var(--primary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
 }
 </style>

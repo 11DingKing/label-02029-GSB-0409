@@ -37,37 +37,37 @@
     
     <el-card>
       <el-table :data="books" v-loading="loading" stripe>
-        <el-table-column prop="id" label="编号" width="80" />
-        <el-table-column label="封面" width="80">
+        <el-table-column prop="id" label="编号" width="70" />
+        <el-table-column label="封面" width="70">
           <template #default="{ row }">
-            <el-image :src="row.coverImage || '/images/default-cover.svg'" style="width: 50px; height: 70px" fit="cover">
+            <el-image :src="row.coverImage || '/images/default-cover.svg'" style="width: 40px; height: 56px" fit="cover">
               <template #error>
-                <img src="/images/default-cover.svg" style="width: 50px; height: 70px; object-fit: cover" />
+                <img src="/images/default-cover.svg" style="width: 40px; height: 56px; object-fit: cover" />
               </template>
             </el-image>
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="书名" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="author" label="作者" width="120" />
-        <el-table-column prop="isbn" label="ISBN" width="140" />
-        <el-table-column label="分类" width="100">
+        <el-table-column prop="title" label="书名" min-width="120" show-overflow-tooltip />
+        <el-table-column prop="author" label="作者" min-width="110" show-overflow-tooltip />
+        <el-table-column prop="isbn" label="ISBN" width="140" show-overflow-tooltip />
+        <el-table-column label="分类" width="90">
           <template #default="{ row }">
             {{ getCategoryName(row.categoryId) }}
           </template>
         </el-table-column>
-        <el-table-column prop="price" label="价格" width="100">
+        <el-table-column prop="price" label="价格" width="80">
           <template #default="{ row }">¥{{ row.price?.toFixed(2) }}</template>
         </el-table-column>
-        <el-table-column prop="quality" label="成色" width="80" />
-        <el-table-column prop="stock" label="库存" width="80" />
-        <el-table-column prop="status" label="状态" width="80">
+        <el-table-column prop="quality" label="成色" width="70" />
+        <el-table-column prop="stock" label="库存" width="60" />
+        <el-table-column prop="status" label="状态" width="70">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'info'">
+            <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">
               {{ row.status === 1 ? '上架' : '下架' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="160" />
+        <el-table-column prop="createdAt" label="创建时间" min-width="150" show-overflow-tooltip />
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" @click="viewBook(row)">查看</el-button>
@@ -180,17 +180,16 @@
           </el-col>
         </el-row>
         <el-form-item label="封面">
-          <el-upload
-            class="cover-uploader"
-            :action="uploadUrl"
-            :headers="uploadHeaders"
-            :show-file-list="false"
-            :on-success="handleUploadSuccess"
-            accept="image/*"
-          >
-            <el-image v-if="editForm.coverImage" :src="editForm.coverImage" class="cover-preview" fit="cover" />
-            <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
-          </el-upload>
+          <div class="cover-wrapper">
+            <div class="cover-uploader" @click="triggerUpload">
+              <img v-if="editForm.coverImage" :src="editForm.coverImage" class="cover-preview" />
+              <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
+            </div>
+            <el-button v-if="editForm.coverImage" type="danger" size="small" circle class="cover-remove-btn" @click.stop="editForm.coverImage = ''">
+              <el-icon><Close /></el-icon>
+            </el-button>
+          </div>
+          <input ref="fileInputRef" type="file" accept="image/*" style="display: none" @change="handleFileChange" />
           <el-input v-model="editForm.coverImage" placeholder="或直接输入图片URL" style="margin-top: 8px" />
         </el-form-item>
         <el-form-item label="简介">
@@ -212,9 +211,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Close } from '@element-plus/icons-vue'
 import api from '../api'
 
 const books = ref([])
@@ -259,10 +258,37 @@ const rules = {
   stock: [{ required: true, message: '请输入库存', trigger: 'blur' }]
 }
 
-const uploadUrl = '/api/upload/image'
-const uploadHeaders = computed(() => ({
-  Authorization: `Bearer ${localStorage.getItem('admin_token')}`
-}))
+const fileInputRef = ref(null)
+const uploading = ref(false)
+
+const triggerUpload = () => {
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
+    fileInputRef.value.click()
+  }
+}
+
+const handleFileChange = async (e) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+  uploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await api.post('/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    if (res.code === 200) {
+      editForm.value.coverImage = res.data
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error('上传失败')
+    }
+  } catch (err) {
+    ElMessage.error('上传失败')
+  }
+  uploading.value = false
+}
 
 const getCategoryName = (id) => {
   const cat = categories.value.find(c => c.id === id)
@@ -336,15 +362,6 @@ const editBook = (book) => {
   dialogVisible.value = true
 }
 
-const handleUploadSuccess = (res) => {
-  if (res.code === 200) {
-    editForm.value.coverImage = res.data
-    ElMessage.success('上传成功')
-  } else {
-    ElMessage.error('上传失败')
-  }
-}
-
 const saveBook = async () => {
   if (!formRef.value) return
   
@@ -412,6 +429,11 @@ onMounted(() => {
   font-size: 12px;
 }
 
+.cover-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .cover-uploader {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
@@ -421,6 +443,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .cover-uploader:hover {
@@ -430,10 +453,19 @@ onMounted(() => {
 .cover-preview {
   width: 120px;
   height: 160px;
+  object-fit: cover;
+  display: block;
 }
 
 .cover-uploader-icon {
   font-size: 28px;
   color: #8c939d;
+}
+
+.cover-remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 1;
 }
 </style>

@@ -171,23 +171,54 @@ const removeCover = () => {
   form.value.coverImage = ''
 }
 
+const resetForm = () => {
+  form.value = {
+    title: '',
+    author: '',
+    isbn: '',
+    publisher: '',
+    categoryId: '',
+    quality: '',
+    originalPrice: '',
+    price: '',
+    stock: 1,
+    coverImage: '',
+    description: ''
+  }
+}
+
 const handleSubmit = async () => {
   submitting.value = true
   try {
-    const res = await api.post('/books', form.value)
+    const submitData = {
+      ...form.value,
+      price: form.value.price ? Number(form.value.price) : null,
+      originalPrice: form.value.originalPrice ? Number(form.value.originalPrice) : null,
+      stock: form.value.stock ? Number(form.value.stock) : 1,
+      categoryId: form.value.categoryId ? Number(form.value.categoryId) : null
+    }
+    const res = await api.post('/books', submitData)
     if (res.code === 200) {
       toast.success('发布成功！书籍已上架')
+      resetForm()
       setTimeout(() => router.push('/books'), 1500)
     } else {
       toast.error(res.message || '发布失败')
     }
   } catch (e) {
-    toast.error('发布失败，请重新登录后再试')
+    if (e.response?.status === 401) {
+      toast.error('登录已失效，请重新登录')
+    } else {
+      toast.error(e.response?.data?.message || '发布失败，请检查表单信息')
+    }
   }
   submitting.value = false
 }
 
-onMounted(fetchCategories)
+onMounted(() => {
+  resetForm()
+  fetchCategories()
+})
 </script>
 
 <style scoped>

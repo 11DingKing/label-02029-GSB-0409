@@ -28,17 +28,17 @@
     </el-card>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑分类' : '添加分类'" width="400px">
-      <el-form :model="form" label-width="80px">
-        <el-form-item label="名称">
-          <el-input v-model="form.name" />
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="80px">
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入分类名称" />
         </el-form-item>
-        <el-form-item label="图标">
-          <el-input v-model="form.icon" />
+        <el-form-item label="图标" prop="icon">
+          <el-input v-model="form.icon" placeholder="请输入图标标识" />
         </el-form-item>
-        <el-form-item label="排序">
+        <el-form-item label="排序" prop="sortOrder">
           <el-input-number v-model="form.sortOrder" :min="0" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="状态" prop="status">
           <el-select v-model="form.status">
             <el-option label="启用" :value="1" />
             <el-option label="禁用" :value="0" />
@@ -47,7 +47,7 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveCategory">保存</el-button>
+        <el-button type="primary" @click="saveCategory" :loading="saving">保存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -60,9 +60,17 @@ import api from '../api'
 
 const categories = ref([])
 const loading = ref(false)
+const saving = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const formRef = ref(null)
 const form = ref({ name: '', icon: '', sortOrder: 0, status: 1 })
+
+const rules = {
+  name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }],
+  icon: [{ required: true, message: '请输入图标标识', trigger: 'blur' }],
+  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
+}
 
 const fetchCategories = async () => {
   loading.value = true
@@ -90,7 +98,10 @@ const editCategory = (category) => {
 }
 
 const saveCategory = async () => {
+  if (!formRef.value) return
   try {
+    await formRef.value.validate()
+    saving.value = true
     if (isEdit.value) {
       await api.put(`/admin/categories/${form.value.id}`, form.value)
     } else {
@@ -100,8 +111,11 @@ const saveCategory = async () => {
     dialogVisible.value = false
     fetchCategories()
   } catch (e) {
-    ElMessage.error('保存失败')
+    if (e !== false) {
+      ElMessage.error('保存失败')
+    }
   }
+  saving.value = false
 }
 
 const deleteCategory = async (category) => {
